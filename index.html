@@ -47,7 +47,46 @@ table tbody tr:hover{background:#ffffff08}
  .hero{margin-bottom:14px}
  #clubSelect{max-width:150px}
 }
-.attr-high{color:#45df91!important;font-weight:850}.attr-mid{color:#f5c96b!important;font-weight:800}.attr-low{color:#ff7777!important;font-weight:800}#inboxList article{background:#111e2e;border-radius:10px;margin:8px 0;padding:12px}</style></head><body>
+.attr-high{color:#45df91!important;font-weight:850}.attr-mid{color:#f5c96b!important;font-weight:800}.attr-low{color:#ff7777!important;font-weight:800}#inboxList article{background:#111e2e;border-radius:10px;margin:8px 0;padding:12px}
+/* Modo telemóvel: experiência otimizada na horizontal */
+.rotate-hint{display:none}
+@media (max-width:760px) and (orientation:portrait){
+ .rotate-hint{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;background:#08111d;color:#eff6ff}
+ .rotate-hint .rotate-icon{font-size:54px;margin-bottom:14px}
+ .rotate-hint strong{font-size:22px;margin-bottom:8px}
+ .rotate-hint p{max-width:280px;color:#9aadc2;margin:0}
+}
+@media (max-width:900px) and (orientation:landscape){
+ body{font-size:12px}
+ header{position:relative;padding:6px 12px;min-height:42px}
+ .logo{font-size:15px}
+ .season{font-size:10px}
+ header .pill{font-size:9px;padding:2px 6px}
+ nav{position:sticky;top:0;padding:5px 8px;gap:4px;overflow-x:auto;white-space:nowrap}
+ nav button{font-size:11px;padding:7px 9px}
+ nav select{font-size:11px;padding:7px;min-width:105px}
+ main{padding:9px 10px 24px;max-width:none}
+ #accountPanel{padding:9px 12px!important;margin-bottom:8px!important}
+ #accountPanel h2{font-size:14px;margin:0}
+ #accountPanel .row{gap:6px}
+ #accountPanel input,#accountPanel button{padding:6px 8px;font-size:11px}
+ .hero{align-items:center;margin-bottom:9px}
+ h1{font-size:23px}
+ h2{font-size:14px;margin-bottom:8px}
+ .grid{gap:8px}
+ .panel{padding:10px;border-radius:12px}
+ .stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+ .stat{padding:7px}
+ .stat b{font-size:16px}
+ .stat small{font-size:9px}
+ #stadium3d{height:min(58vh,330px);min-height:190px}
+ .pitch{height:190px}
+ table{font-size:11px}
+ td,th{padding:6px 4px}
+ button,select,input{font-size:12px;padding:7px 9px}
+ .feedlog{max-height:120px}
+}
+</style></head><body><div class="rotate-hint" role="status"><div class="rotate-icon">📱 ↻</div><strong>Roda o telemóvel</strong><p>O FM Ultimate foi otimizado para jogar com o ecrã na horizontal.</p></div>
 <header><div class="logo">FM <span>ULTIMATE</span></div><div class="season" id="seasonLabel">ÉPOCA 2026/27 · CARREIRA</div><div class="row"><span class="pill" id="managerLabel">TREINADOR</span><b id="dateLabel">JUL 2026</b></div></header>
 <nav aria-label="Navegação principal">
 <button data-tab="home" class="primary">⌂ Início</button><button data-tab="squad">♟ Equipa</button><button data-tab="tactics">▤ Tática</button><button data-tab="match">▶ Jogar</button><button data-tab="transfers">⇄ Mercado</button><button data-tab="league">🏆 Liga</button><button data-tab="inbox">✉ Caixa de entrada</button>
