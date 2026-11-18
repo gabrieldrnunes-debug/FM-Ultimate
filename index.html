@@ -106,6 +106,39 @@ body.authenticated #accountPanel{display:none!important}
  body:not(.authenticated) #accountPanel{padding:20px}
  body:not(.authenticated) #accountPanel h2{font-size:22px}
 }
+
+/* Reforço do bloqueio de acesso em todos os tamanhos de ecrã */
+html,body{min-height:100%;margin:0}
+body:not(.authenticated) header,
+body:not(.authenticated) nav,
+body:not(.authenticated) main>:not(#accountPanel){display:none!important}
+body:not(.authenticated) main{
+ position:fixed!important;inset:0!important;z-index:2147483000!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ width:100%!important;height:100%!important;min-height:100dvh!important;
+ box-sizing:border-box!important;overflow-y:auto!important;
+ margin:0!important;padding:20px!important;
+ background:radial-gradient(ellipse at 50% 8%,#1c3c54 0,#0a1725 55%,#050c14 100%)!important
+}
+body:not(.authenticated) #accountPanel{
+ display:block!important;visibility:visible!important;opacity:1!important;
+ position:relative!important;flex:0 1 440px!important;width:100%!important;max-width:440px!important;
+ box-sizing:border-box!important;margin:auto!important;padding:24px!important;
+ border:1px solid #36516c!important;border-radius:20px!important;
+ background:#101e2e!important;box-shadow:0 24px 80px #000a!important
+}
+body:not(.authenticated) #accountPanel .row:first-child{display:block!important}
+body:not(.authenticated) #authControls{display:grid!important;grid-template-columns:1fr 1fr!important}
+body:not(.authenticated) #authEmail,
+body:not(.authenticated) #authPassword{grid-column:1/-1!important;width:100%!important;box-sizing:border-box!important}
+body:not(.authenticated) #accountPanel h2{font-size:24px!important}
+body.authenticated main{position:static!important;display:block!important;height:auto!important;min-height:0!important;background:transparent!important;padding:24px!important}
+body.authenticated main>:not(#accountPanel){display:block}
+body.authenticated #accountPanel{display:none!important}
+@media(max-width:600px){
+ body:not(.authenticated) main{padding:16px!important}
+ body:not(.authenticated) #accountPanel{padding:20px!important}
+}
 </style></head><body><div class="rotate-hint" role="status"><div class="rotate-icon">📱 ↻</div><strong>Roda o telemóvel</strong><p>O FM Ultimate foi otimizado para jogar com o ecrã na horizontal.</p></div>
 <header><div class="logo">FM <span>ULTIMATE</span></div><div class="season" id="seasonLabel">ÉPOCA 2026/27 · CARREIRA</div><div class="row"><span class="pill" id="managerLabel">TREINADOR</span><b id="dateLabel">JUL 2026</b></div></header>
 <nav aria-label="Navegação principal">
