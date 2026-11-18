@@ -296,13 +296,38 @@ function startCareer(){
  const budgets={"Sporting CP":35,"SL Benfica":40,"FC Porto":30,"Real Madrid":120,"Manchester City":110,"Paris Saint-Germain":100,"Bayern München":90};
  state.budget=budgets[state.club]||18;state.balance=Math.max(8,state.budget*.53);
  state.league=(WORLD_CLUBS[$("setupCountry").value][$("setupLeague").value]||[]).map(name=>({name,p:0,w:0,d:0,l:0,gd:0,pts:0}));
- state.players=structuredClone(defaultPlayers);
+ state.players=clubPlayers(state.club);
  document.body.classList.add("career-started");renderAll();save();
 }
 
 const money=n=>"€"+n.toFixed(1)+"M";
 const defaultPlayers=[
 ["Rui Silva","GR",27,84,86,92,83,70,0,0],["Mateus Costa","DC",24,82,87,89,82,65,0,0],["Lucas Pereira","DC",29,80,80,90,76,52,0,0],["Tiago Gomes","DD",23,81,86,94,85,58,0,0],["Diogo Rocha","DE",25,83,85,91,88,74,0,0],["João Santos","MC",22,86,92,95,90,85,0,0],["Pedro Lima","MC",26,84,85,88,84,76,0,0],["Fábio Alves","MO",21,85,93,90,91,83,0,0],["Nuno Reis","ED",24,87,90,93,88,80,0,0],["André Mendes","PL",25,88,90,91,93,86,0,0],["Ivo Duarte","EE",20,82,91,95,89,78,0,0],["Carlos Neves","GR",20,73,85,98,78,76,0,0],["Bruno Matos","DC",22,77,84,94,80,72,0,0],["Guilherme Pires","MC",19,74,89,96,84,82,0,0],["Samuel Costa","AV",21,76,87,95,85,79,0,0],["David Faria","DE",24,75,79,93,77,70,0,0]];
+// Plantéis reais de referência 2026/27 para os três grandes portugueses.
+// Idades e atributos de jogo são estimativas para equilibrar a simulação.
+const CLUB_SQUADS={
+ "Sporting CP":[
+ ["Rui Silva","GR",32,82],["João Virgínia","GR",26,74],["Diego Calai","GR",20,68],
+ ["Gonçalo Inácio","DC",25,84],["Ousmane Diomande","DC",22,82],["Zeno Debast","DC",22,80],["Eduardo Quaresma","DC",24,76],["Iván Fresneda","DD",22,77],["Georgios Vagiannidis","DD",25,77],["Maxi Araújo","DE",26,81],["Nuno Santos","DE",31,79],
+ ["Daniel Bragança","MC",27,80],["João Simões","MC",19,74],["Sergi Altimira","MC",25,78],["Giorgi Kochorashvili","MC",27,76],["Pedro Gonçalves","MO",28,84],["Geny Catamo","ED",25,81],["Francisco Trincão","ED",26,84],["Fotis Ioannidis","PL",26,81],["Luis Suárez","PL",28,83],["Rodrigo Zalazar","MO",27,80],["Luís Guilherme","EE",20,77]
+ ],
+ "SL Benfica":[
+ ["Anatoliy Trubin","GR",25,84],["Samuel Soares","GR",24,73],["Diogo Ferreira","GR",19,66],
+ ["Alexander Bah","DD",28,80],["Samuel Dahl","DE",23,77],["António Silva","DC",22,82],["Tomás Araújo","DC",24,80],["Clément Lenglet","DC",31,79],["Alessandro Circati","DC",23,76],["Souffian El Karouani","DE",26,78],
+ ["Fredrik Aursnes","MC",30,83],["Enzo Barrenechea","MC",25,77],["Leandro Barreiro","MC",26,78],["Manu Silva","MC",25,76],["Georgiy Sudakov","MO",24,84],["João Palhinha","MC",31,83],
+ ["Dodi Lukebakio","ED",29,82],["Andreas Schjelderup","EE",22,79],["Vangelis Pavlidis","PL",28,84],["Gianluca Prestianni","ED",20,77],["Rafa Silva","MO",33,80],["Jhon Durán","PL",22,82],["Claudio Echeverri","MO",20,78]
+ ],
+ "FC Porto":[
+ ["Diogo Costa","GR",27,86],["Cláudio Ramos","GR",35,75],["João Costa","GR",30,70],
+ ["Jakub Kiwior","DC",26,82],["Jan Bednarek","DC",30,80],["Nehuén Pérez","DC",26,79],["Chris Smalling","DC",36,76],["Dominik Prpić","DC",22,74],["Alberto Costa","DD",23,77],["Martim Fernandes","DD",20,76],["Zaidu Sanusi","DE",29,75],["Francisco Moura","DE",27,79],
+ ["Alan Varela","MC",25,83],["Victor Froholdt","MC",20,78],["Gabri Veiga","MO",24,81],["Pablo Rosario","MC",29,77],["Vasco Sousa","MC",23,75],["Seko Fofana","MC",31,80],["William Gomes","ED",20,78],["Pepê","ED",29,82],["Borja Sainz","EE",25,80],["Samu Aghehowa","PL",22,84],["Santiago Giménez","PL",25,82],["André Silva","PL",31,76]
+ ]
+};
+function clubPlayers(name){
+ const roster=CLUB_SQUADS[name];
+ if(!roster)return structuredClone(defaultPlayers);
+ return roster.map(([n,pos,age,ovr])=>[n,pos,age,ovr,Math.min(96,ovr+(pos==="ED"||pos==="EE"||pos==="PL"?5:pos==="GR"?-3:1)),Math.min(96,ovr+4),Math.min(96,ovr+(pos==="MC"||pos==="MO"?5:0)),Math.min(96,ovr+(pos==="PL"?6:pos==="DC"?-12:0)),0,0]);
+}
 const marketSeed=[["E. Navarro","PL",22,83,89,32],["M. Okafor","ED",24,84,87,38],["D. Varela","MC",20,78,90,18],["A. Diallo","DC",26,82,84,22],["S. Petrovic","GR",23,80,87,16],["L. Moretti","MO",19,76,91,14],["J. Mensah","DE",25,81,85,20],["K. Tanaka","MC",18,74,92,12],["O. Silva","DC",21,79,88,19],["P. Moreau","ED",25,85,86,41],["I. Bako","PL",19,75,91,15],["A. Svensson","GR",27,82,83,17]];
 const clubNames=["Sporting CP","SL Benfica","FC Porto","SC Braga","Vitória SC","Famalicão","Rio Ave","Boavista","Moreirense","Gil Vicente","Casa Pia","Estoril"];
 const international=["Portugal","Brasil","Argentina","França","Espanha","Inglaterra","Alemanha","Países Baixos","Marrocos","Japão","Uruguai","Croácia"];
