@@ -220,8 +220,44 @@ body.authenticated.career-started #careerSetup{display:none!important}
  .fm-navigation select{min-width:112px;max-width:112px;padding:8px 5px;font-size:10px}
 }
 
+
+/* Estrutura fixa da aplicação: ecrã de perfil antes da carreira e páginas internas sem scroll global */
+html,body{height:100%;min-height:0;overflow:hidden}
+body.authenticated:not(.career-started) header,body.authenticated:not(.career-started) nav{display:none!important}
+body.authenticated:not(.career-started) main{position:fixed!important;inset:0!important;z-index:10000!important;display:block!important;overflow:hidden!important;width:100%!important;max-width:none!important;margin:0!important;padding:16px!important}
+body.authenticated:not(.career-started) main>:not(#accountHub):not(#careerSetup){display:none!important}
+body.authenticated:not(.career-started):not(.creating-career) #accountHub{display:block!important;width:min(100%,850px);max-height:calc(100dvh - 32px);overflow:auto;margin:0 auto!important}
+body.authenticated:not(.career-started).creating-career #accountHub{display:none!important}
+body.authenticated:not(.career-started).creating-career #careerSetup{display:block!important;width:min(100%,650px);max-height:calc(100dvh - 32px);overflow:auto;margin:0 auto!important}
+body.authenticated.career-started{height:100dvh;overflow:hidden}
+body.authenticated.career-started header{position:fixed!important;top:0;left:0;right:0;height:52px;min-height:52px;padding:6px 14px;z-index:50}
+body.authenticated.career-started nav.fm-navigation{position:fixed!important;top:52px;left:0;right:0;height:58px;min-height:58px;z-index:49;overflow-x:auto;overflow-y:hidden}
+body.authenticated.career-started main{position:fixed!important;top:110px;left:0;right:0;bottom:0;width:100%!important;max-width:none!important;margin:0!important;padding:12px 14px 16px!important;overflow:hidden!important}
+body.authenticated.career-started main>:not(.tab){display:none!important}
+body.authenticated.career-started .tab{display:none!important;height:100%;max-height:100%;overflow:auto;overscroll-behavior:contain;padding:0 0 22px}
+body.authenticated.career-started .tab.active{display:block!important}
+body.authenticated.career-started .profile-menu-btn{display:inline-block}
+.career-save-card{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px;margin:9px 0;border:1px solid #304861;border-radius:13px;background:linear-gradient(120deg,#172b40,#101c2a)}
+.career-save-card>div:first-child{display:flex;flex-direction:column;gap:4px;min-width:0}
+.career-save-card small{color:var(--muted);font-size:11px}
+.career-save-actions{display:flex;gap:7px;flex-shrink:0}
+.career-empty{padding:22px;border:1px dashed #38516a;border-radius:13px;text-align:center;color:var(--muted)}
+.profile-menu-btn{display:none;padding:6px 10px;font-size:11px}
+@media(max-width:760px){
+ body.authenticated.career-started header{height:44px;min-height:44px;padding:5px 9px}
+ body.authenticated.career-started nav.fm-navigation{top:44px;height:56px;min-height:56px;padding:4px 6px}
+ body.authenticated.career-started main{top:100px;padding:8px 8px 12px!important}
+ body.authenticated.career-started .fm-navigation .nav-primary{gap:2px}
+ body.authenticated.career-started .fm-navigation button{min-width:62px;padding:6px 6px;font-size:9px}
+ body.authenticated.career-started .fm-navigation button span{font-size:14px}
+ body.authenticated.career-started .fm-navigation .nav-secondary{padding-left:5px}
+ body.authenticated.career-started .fm-navigation select{min-width:105px;max-width:105px;padding:7px 4px;font-size:9px}
+ .career-save-card{align-items:flex-start;flex-direction:column}
+ .career-save-actions{width:100%}.career-save-actions button{flex:1}
+}
+
 </style></head><body><div class="rotate-hint" role="status"><div class="rotate-icon">📱 ↻</div><strong>Roda o telemóvel</strong><p>O FM Ultimate foi otimizado para jogar com o ecrã na horizontal.</p></div>
-<header><div class="logo">FM <span>ULTIMATE</span></div><div class="season" id="seasonLabel">ÉPOCA 2026/27 · CARREIRA</div><div class="row"><span class="pill" id="managerLabel">TREINADOR</span><b id="dateLabel">JUL 2026</b></div></header>
+<header><div class="logo">FM <span>ULTIMATE</span></div><div class="season" id="seasonLabel">ÉPOCA 2026/27 · CARREIRA</div><div class="row"><span class="pill" id="managerLabel">TREINADOR</span><b id="dateLabel">JUL 2026</b><button id="profileMenuBtn" class="profile-menu-btn" type="button">Perfil</button></div></header>
 <nav aria-label="Navegação principal" class="fm-navigation">
 <div class="nav-primary">
 <button data-tab="home" class="primary"><span>⌂</span> Visão geral</button>
@@ -330,7 +366,84 @@ const SUPABASE_URL="https://xqhjrvtteqtvbkmmqtqv.supabase.co";
 const SUPABASE_KEY="sb_publishable_UIgHG7OiwoNfz4l-QyhSNg_dr0AKPE3";
 const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let currentUser=null,authBusy=false,careerList=[],activeCareerId=null,profileData={name:"",avatar:""},creatingCareer=false,recoveryRequested=(/type=recovery/i.test(location.hash)||/type=recovery/i.test(location.search)||/[?&]reset=1(?:&|$)/.test(location.search));
-function authUI(){const yes=!!currentUser;document.body.classList.toggle("authenticated",yes);$("accountPanel").style.display=yes?"none":"block";$("accountHub").style.display=yes?"block":"none";$("authBadge").textContent=yes?"PERFIL PRIVADO":"A LIGAR";$("authStatus").textContent=yes?"Perfil deste dispositivo ligado e sincronizado.":"A criar o teu perfil privado…";if(yes)renderAccountHub()}
+
+function accountStorageKey(){return currentUser?"fmUltimateAccount_"+currentUser.id:"fmUltimateAccount_local"}
+function persistActiveCareer(){
+ if(!state||!state.careerStarted||!activeCareerId)return;
+ const item=careerList.find(x=>x.id===activeCareerId);
+ if(item){item.name=state.careerName||state.club;item.club=state.club;item.state=structuredClone(state);item.updatedAt=new Date().toISOString()}
+}
+function accountBundle(){persistActiveCareer();return {version:1,profileData,careerList,activeCareerId}}
+async function saveCloud(){
+ if(!currentUser)return;
+ try{
+  const payload=accountBundle();
+  const {error}=await supa.from("careers").upsert({user_id:currentUser.id,save_data:payload,updated_at:new Date().toISOString()},{onConflict:"user_id"});
+  if(error)throw error;
+  $("saveStatus").textContent="Carreiras sincronizadas.";
+ }catch(err){$("saveStatus").textContent="Guardado neste dispositivo; sincronização indisponível: "+(err?.message||err)}
+}
+async function loadCloud(){
+ if(!currentUser)return;
+ try{
+  const {data,error}=await supa.from("careers").select("save_data").eq("user_id",currentUser.id).maybeSingle();
+  if(error)throw error;
+  let bundle=data?.save_data;
+  if(!bundle){try{bundle=JSON.parse(localStorage.getItem(accountStorageKey())||"null")}catch(e){}}
+  if(bundle&&typeof bundle==="object"){
+   careerList=Array.isArray(bundle.careerList)?bundle.careerList:[];
+   profileData=bundle.profileData&&typeof bundle.profileData==="object"?bundle.profileData:{name:"",avatar:""};
+   activeCareerId=bundle.activeCareerId||null;
+  }else{
+   careerList=[];profileData={name:"",avatar:""};activeCareerId=null;
+   try{const old=JSON.parse(localStorage.getItem("fmUltimateCareer_"+currentUser.id)||"null");if(old?.careerStarted){activeCareerId="career-migrated-"+Date.now();careerList.push({id:activeCareerId,name:old.club||"A minha carreira",club:old.club||"",state:old,updatedAt:new Date().toISOString()})}}catch(e){}
+  }
+  localStorage.setItem(accountStorageKey(),JSON.stringify(accountBundle()));
+  if(activeCareerId&&careerList.some(x=>x.id===activeCareerId)){state=structuredClone(careerList.find(x=>x.id===activeCareerId).state);document.body.classList.add("career-started");renderAll();setTab("home")}
+  else{state=fresh();document.body.classList.remove("career-started");document.body.classList.remove("creating-career")}
+  authUI();renderAccountHub();
+  $("saveStatus").textContent="Perfil e carreiras carregados.";
+ }catch(err){$("saveStatus").textContent="Não foi possível carregar a nuvem: "+(err?.message||err);try{const b=JSON.parse(localStorage.getItem(accountStorageKey())||"null");if(b){careerList=b.careerList||[];profileData=b.profileData||{name:"",avatar:""};activeCareerId=b.activeCareerId||null}}catch(e){}renderAccountHub()}
+}
+function renderAccountHub(){
+ const name=profileData.name||"Treinador";
+ $("profileDisplayName").textContent=name;
+ $("profileNameInput").value=profileData.name||"";
+ $("profileEmail").textContent="Perfil privado deste dispositivo";
+ const avatar=$("profileAvatar");if(profileData.avatar){avatar.src=profileData.avatar;avatar.style.display="block"}else{avatar.removeAttribute("src");avatar.style.display="none"}
+ $("careerCount").textContent="("+careerList.length+"/5)";
+ $("newCareerBtn").disabled=careerList.length>=5;
+ $("careerList").innerHTML=careerList.length?careerList.map(item=>{
+  const s=item.state||{},club=item.club||s.club||item.name||"Carreira";
+  const when=item.updatedAt?new Date(item.updatedAt).toLocaleDateString("pt-PT"):"";
+  return '<article class="career-save-card"><div><b>'+escapeAccountText(item.name||club)+'</b><small>'+escapeAccountText(club)+' · Época '+(s.season||2026)+'/'+String((s.season||2026)+1).slice(-2)+' · Jornada '+(s.week||1)+'</small><small>Última gravação: '+when+'</small></div><div class="career-save-actions"><button class="primary" data-open-career="'+escapeAccountText(item.id)+'">Abrir</button><button data-delete-career="'+escapeAccountText(item.id)+'" aria-label="Apagar carreira">Apagar</button></div></article>'
+ }).join(""):'<div class="career-empty"><b>Ainda não tens carreiras.</b><p>Cria a tua primeira carreira para começares a jogar.</p></div>';
+ $("careerList").querySelectorAll("[data-open-career]").forEach(b=>b.onclick=()=>openCareer(b.dataset.openCareer));
+ $("careerList").querySelectorAll("[data-delete-career]").forEach(b=>b.onclick=()=>deleteCareer(b.dataset.deleteCareer));
+}
+function escapeAccountText(value){return String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]))}
+function openCareer(id){
+ const item=careerList.find(x=>x.id===id);if(!item||!item.state)return;
+ activeCareerId=id;state=structuredClone(item.state);state.careerStarted=true;
+ document.body.classList.remove("creating-career");document.body.classList.add("career-started");
+ $("careerSetup").style.display="none";$("accountHub").style.display="none";
+ renderAll();setTab("home");save();
+}
+function deleteCareer(id){
+ const item=careerList.find(x=>x.id===id);if(!item)return;
+ if(!confirm('Queres apagar definitivamente a carreira "'+(item.name||item.club)+'"?'))return;
+ careerList=careerList.filter(x=>x.id!==id);
+ if(activeCareerId===id){activeCareerId=null;state=fresh();document.body.classList.remove("career-started")}
+ renderAccountHub();localStorage.setItem(accountStorageKey(),JSON.stringify(accountBundle()));saveCloud();
+}
+function showCareerHub(){
+ persistActiveCareer();localStorage.setItem(accountStorageKey(),JSON.stringify(accountBundle()));
+ document.body.classList.remove("career-started","creating-career");
+ $("careerSetup").style.display="none";$("accountHub").style.display="block";
+ renderAccountHub();if(currentUser)saveCloud();
+}
+
+function authUI(){const yes=!!currentUser;document.body.classList.toggle("authenticated",yes);$("accountPanel").style.display=yes?"none":"block";$("accountHub").style.display=yes&&!document.body.classList.contains("career-started")&&!document.body.classList.contains("creating-career")?"block":"none";$("authBadge").textContent=yes?"PERFIL PRIVADO":"A LIGAR";$("authStatus").textContent=yes?"Perfil deste dispositivo ligado e sincronizado.":"A criar o teu perfil privado…";if(yes)renderAccountHub()}
 async function initAuth(){supa.auth.onAuthStateChange((event,session)=>{const next=session?.user||null;const changed=next?.id!==currentUser?.id;currentUser=next;authUI();if(changed&&currentUser)Promise.resolve().then(()=>loadCloud()).catch(err=>{$("saveStatus").textContent="Erro ao carregar a carreira: "+(err?.message||err)})});try{const {data,error}=await supa.auth.getSession();if(error)throw error;currentUser=data.session?.user||null;if(!currentUser){const anon=await supa.auth.signInAnonymously();if(anon.error)throw anon.error;currentUser=anon.data.user||anon.data.session?.user||null}if(!currentUser)throw new Error("Não foi possível criar o perfil deste dispositivo.");authUI();await loadCloud();$("authHelp").textContent="Perfil pronto. Não precisas de iniciar sessão.";$("authStatus").textContent="Este dispositivo tem um perfil privado."; }catch(err){authUI();$("authHelp").textContent="Não foi possível criar o perfil automático: "+(err?.message||String(err))+" Confirma se o acesso anónimo está ativado no Supabase.";$("saveStatus").textContent="Perfil não ligado à nuvem."}}
 
 const WORLD_CLUBS={
@@ -399,7 +512,7 @@ function startCareer(){
  state.budget=budgets[state.club]||18;state.balance=Math.max(8,state.budget*.53);
  state.league=(WORLD_CLUBS[$("setupCountry").value][$("setupLeague").value]||[]).map(name=>({name,p:0,w:0,d:0,l:0,gd:0,pts:0}));state.players=clubPlayers(state.club);
  if(creatingCareer||!activeCareerId){activeCareerId="career-"+Date.now()+"-"+Math.random().toString(36).slice(2,7);careerList.push({id:activeCareerId,name:state.club,club:state.club,state:structuredClone(state),updatedAt:new Date().toISOString()})}else{const item=careerList.find(x=>x.id===activeCareerId);if(item){item.name=state.club;item.club=state.club;item.state=structuredClone(state)}}
- creatingCareer=false;$("careerSetup").style.display="none";document.body.classList.add("career-started");renderAll();renderAccountHub();save();
+ creatingCareer=false;$("careerSetup").style.display="none";document.body.classList.remove("creating-career");document.body.classList.add("career-started");renderAll();renderAccountHub();save();
 }
 
 const money=n=>"€"+n.toFixed(1)+"M";
@@ -473,7 +586,9 @@ function moneyUI(){["budgetTop","budgetFin"].forEach(id=>$(id).textContent=money
 function save(){persistActiveCareer();try{localStorage.setItem("fmUltimateCareer"+(currentUser?"_"+currentUser.id:""),JSON.stringify(state));if(currentUser)localStorage.setItem("fmUltimateAccount_"+currentUser.id,JSON.stringify(accountBundle()))}catch(e){$("saveStatus").textContent="Armazenamento do telemóvel cheio."}if(currentUser){saveCloud()}else $("saveStatus").textContent="A aguardar ligação do perfil deste dispositivo."}
 function load(){let s=localStorage.getItem("fmUltimateCareer"+(currentUser?"_"+currentUser.id:""));if(!s){$("saveStatus").textContent="Não foi encontrada uma carreira guardada.";return}try{state=JSON.parse(s);renderAll();$("saveStatus").textContent="Carreira carregada."}catch(e){$("saveStatus").textContent="Não foi possível carregar a gravação."}}
 function setTab(t){
- document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.id===t));
+ const target=$(t);if(!target||!target.classList.contains("tab"))return;
+ if(!document.body.classList.contains("career-started"))return;
+ document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===target));
  document.querySelectorAll(".fm-navigation button").forEach(x=>x.classList.toggle("primary",x.dataset.tab===t));
  const more=$("moreNav");if(more)more.value=[...more.options].some(o=>o.value===t)?t:"";
  if(t==="match"&&threeMatch&&threeMatch.resize)requestAnimationFrame(threeMatch.resize);
@@ -597,7 +712,12 @@ $("goMatch").onclick=()=>{setTab("match")};$("hubMatchBtn").onclick=()=>{setTab(
 $("subBtn").onclick=()=>{let injured=state.players.find(p=>p[8]>0||p[9]>0);let sub=state.players.find(p=>p[5]>70&&p[8]===0&&p[9]===0);if(sub&&state.match.minute>0&&!state.match.finished){state.match.events.push("Substituição: "+sub[0]+" entra para dar energia à equipa.");state.morale=Math.min(100,state.morale+1);updateMatch()}else $("commentary").innerHTML+="<p>As substituições podem ser feitas durante a partida; ainda não há uma alteração disponível.</p>"};
 $("matchTacticBtn").onclick=()=>{state.mentality=state.mentality==="Ofensiva"?"Equilibrada":"Ofensiva";$("matchTacticBtn").textContent=state.mentality==="Ofensiva"?"Mentalidade equilibrada":"Mentalidade ofensiva";state.match.events.push("A equipa altera a mentalidade para "+state.mentality.toLowerCase()+".");updateMatch()};
 $("applyTactics").onclick=()=>{state.formation=$("formation").value;state.mentality=$("mentality").value;state.style=$("playStyle").value;state.passStyle=$("passStyle").value;state.line=$("defLine").value;$("tacticsFeed").textContent=state.formation+" · "+state.mentality+" · "+state.style+" · linha "+state.line.toLowerCase();homeMsg("Nova tática aplicada: "+state.formation+".");save()};
-$("saveBtn").onclick=save;$("cancelCareerSetupBtn").onclick=()=>{$("careerSetup").style.display="none";creatingCareer=false};$("loadBtn").onclick=()=>currentUser?loadCloud():load();$("startCareerBtn").onclick=startCareer;setupOptions();document.querySelectorAll("[data-open-tab]").forEach(b=>b.onclick=()=>setTab(b.dataset.openTab));$("resetBtn").onclick=()=>{if(confirm("Começar uma nova carreira? A gravação atual não será apagada até guardares a nova carreira.")){try{const savedCareer=localStorage.getItem("fmUltimateCareer");state=savedCareer?JSON.parse(savedCareer):fresh();if(!state||!Array.isArray(state.players)||!state.club)state=fresh()}catch(e){state=fresh()}renderAll();homeMsg("Nova carreira iniciada.")}};
+$("saveBtn").onclick=save;$("cancelCareerSetupBtn").onclick=()=>{creatingCareer=false;document.body.classList.remove("creating-career");$("careerSetup").style.display="none";$("accountHub").style.display="block";renderAccountHub()};$("loadBtn").onclick=()=>currentUser?loadCloud():load();$("startCareerBtn").onclick=startCareer;
+$("newCareerBtn").onclick=()=>{if(careerList.length>=5){alert("O limite é de 5 carreiras por conta.");return}creatingCareer=true;activeCareerId=null;document.body.classList.add("creating-career");$("accountHub").style.display="none";$("careerSetup").style.display="block";setupOptions()};
+$("saveProfileBtn").onclick=()=>{profileData.name=$("profileNameInput").value.trim().slice(0,24);renderAccountHub();localStorage.setItem(accountStorageKey(),JSON.stringify(accountBundle()));if(currentUser)saveCloud()};
+$("profilePhotoInput").onchange=event=>{const file=event.target.files&&event.target.files[0];if(!file)return;if(file.size>2*1024*1024){alert("Escolhe uma fotografia com menos de 2 MB.");event.target.value="";return}const reader=new FileReader();reader.onload=()=>{profileData.avatar=String(reader.result||"");renderAccountHub();localStorage.setItem(accountStorageKey(),JSON.stringify(accountBundle()));if(currentUser)saveCloud()};reader.readAsDataURL(file)};
+$("profileMenuBtn").onclick=showCareerHub;
+setupOptions();document.querySelectorAll("[data-open-tab]").forEach(b=>b.onclick=()=>setTab(b.dataset.openTab));$("resetBtn").onclick=()=>{if(confirm("Começar uma nova carreira? A gravação atual não será apagada até guardares a nova carreira.")){try{const savedCareer=localStorage.getItem("fmUltimateCareer");state=savedCareer?JSON.parse(savedCareer):fresh();if(!state||!Array.isArray(state.players)||!state.club)state=fresh()}catch(e){state=fresh()}renderAll();homeMsg("Nova carreira iniciada.")}};
 $("scoutYouth").onclick=()=>{if(state.balance<.25){$("youthList").textContent="Saldo insuficiente para enviar olheiros.";return}state.balance-=.25;let names=["Gonçalo Martins","Rafael Nogueira","Dinis Carvalho","Tomás Pinto","Leandro Sousa","Afonso Reis","Mikael Costa","Tomás Neves"];let name=names[state.youth.length%names.length];let age=15+Math.floor(Math.random()*4),potential=75+Math.floor(Math.random()*22),pos=["MC","PL","DC","ED","GR"][Math.floor(Math.random()*5)];state.youth.push(`${name} · ${age} anos · ${pos} · Potencial ${potential}`);renderAll();log("Novo relatório da academia: "+name+".")};
 $("upgradeScouting").onclick=()=>{if(state.balance<2){homeMsg("Saldo insuficiente.");return}state.balance-=2;state.scouting++;log("Rede de olheiros melhorada para nível "+state.scouting+".");renderAll()};
 $("leagueChoice").onchange=()=>{$("leagueHeading").textContent=$("leagueChoice").value};$("clearInbox").onclick=()=>{(state.inbox||[]).forEach(x=>x.read=true);renderInbox();save()};
