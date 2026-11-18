@@ -382,11 +382,12 @@ updateMatch();moneyUI();renderLeague();try{localStorage.setItem("fmUltimateCaree
 
 function renderCareerDashboard(){
  if(!$("hubNews"))return;
+ const day=state.day||1;
  $("hubClubTitle").textContent=state.club;
- $("hubSeasonLine").textContent="Época "+state.season+"/"+(state.season+1)+" · Jornada "+state.week;
+ $("hubSeasonLine").textContent="Época "+state.season+"/"+(state.season+1)+" · Jornada "+state.week+" · Dia "+day+"/7";
  $("hubDifficulty").textContent="DIFICULDADE "+({easy:"FÁCIL",normal:"NORMAL",hard:"DIFÍCIL",legend:"LENDA"}[state.difficulty||"normal"]);
  $("hubFixture").textContent=state.club+" vs "+opponent();
- $("hubFixtureMeta").textContent=(state.played?"Encontro concluído":"Dia de jogo · Jornada "+state.week)+" · Época "+state.season;
+ $("hubFixtureMeta").textContent=(state.played?"Encontro concluído":(day===7?"Dia de jogo":"Dia "+day+"/7"))+" · Jornada "+state.week;
  $("hubNews").innerHTML=(state.news||[]).slice(0,4).map(n=>'<div class="career-news-item">'+n+'<small>Notícia do clube</small></div>').join("")||'<div class="muted">Ainda não há notícias.</div>';
  const msgs=(state.inbox||[]).slice(0,4);
  $("hubInbox").innerHTML=msgs.map(m=>'<div class="career-inbox-item '+(!m.read?'unread':'')+'"><b>'+m.title+'</b><small>'+m.type+' · Jornada '+m.week+'</small></div>').join("")||'<div class="muted">Não tens mensagens novas.</div>';
@@ -396,7 +397,29 @@ function renderAll(){document.body.classList.toggle("career-started",state.caree
 $("takeOver").onclick=()=>{state.club=$("clubSelect").value;state.league[0].name=state.club;state.budget=35;state.balance=18.5;state.match={minute:0,home:0,away:0,events:[],shots:0,shotsAgainst:0,finished:false};log("Assumiste o comando do "+state.club+".");homeMsg("A direção de "+state.club+" apresentou os objetivos da época.");renderAll();save()};
 $("filterPosition").onchange=renderSquad;$("marketSearch").oninput=renderMarket;
 $("trainBtn").onclick=()=>{state.morale=Math.min(100,state.morale+4);state.players.forEach(p=>{p[5]=Math.max(55,Math.min(100,p[5]-3));p[6]=Math.min(100,p[6]+2);if(p[4]>p[3]&&Math.random()<.2)p[3]++});log("Sessão de treino concluída. Moral +4; condição física ajustada.");renderAll();homeMsg("Treino concluído. Os jogadores trabalharam a organização e a finalização.")};
-$("weekBtn").onclick=()=>{state.week++;state.season=state.week>38?state.season+1:state.season;if(state.week>38){state.week=1;state.trophies.push("Época "+state.season+" concluída");state.league.forEach(t=>{t.p=0;t.w=0;t.d=0;t.l=0;t.gd=0;t.pts=0});log("Começou uma nova época!");}state.played=false;state.match={minute:0,home:0,away:0,events:[],shots:0,shotsAgainst:0,finished:false};state.morale=Math.min(100,state.morale+2);state.players.forEach(p=>{p[5]=Math.min(100,p[5]+15);if(p[8]>0)p[8]--;if(p[9]>0)p[9]--});if(Math.random()<.09){let p=state.players[Math.floor(Math.random()*state.players.length)];if(p[8]===0){p[8]=1+Math.floor(Math.random()*3);log(p[0]+" sofreu uma lesão e ficará indisponível por "+p[8]+" semana(s).")}}if(Math.random()<.06){let p=state.players[Math.floor(Math.random()*state.players.length)];p[9]=1;log(p[0]+" está suspenso para o próximo encontro.")}state.balance-=.35;log("Nova semana de calendário. A equipa recuperou e preparou o próximo jogo.");renderAll();homeMsg("Avançaste para a jornada "+state.week+". Confere a condição física antes do próximo encontro.");save()};
+function advanceCareerDay(){
+ state.day=state.day||1;
+ if(state.day===7&&!state.played){homeMsg("Hoje é dia de jogo! Prepara a equipa e joga a partida antes de avançares.");inboxAdd("É dia de jogo!","A partida da jornada "+state.week+" está pronta. Vai ao separador Jogar para preparar o encontro.","Dia de jogo");setTab("match");renderAll();return}
+ if(state.day===7&&state.played){
+  state.day=1;state.week++;
+  if(state.week>38){state.week=1;state.season++;state.trophies.push("Época "+state.season+" concluída");state.league.forEach(t=>{t.p=0;t.w=0;t.d=0;t.l=0;t.gd=0;t.pts=0});log("Começou uma nova época!")}
+  state.played=false;state.match={minute:0,home:0,away:0,events:[],shots:0,shotsAgainst:0,finished:false};
+  state.morale=Math.min(100,state.morale+2);
+  state.players.forEach(p=>{p[5]=Math.min(100,p[5]+15);if(p[8]>0)p[8]--;if(p[9]>0)p[9]--});
+  state.balance-=.35;
+  if(Math.random()<.09){let p=state.players[Math.floor(Math.random()*state.players.length)];if(p[8]===0){p[8]=1+Math.floor(Math.random()*3);log(p[0]+" sofreu uma lesão e ficará indisponível por "+p[8]+" semana(s).")}}
+  if(Math.random()<.06){let p=state.players[Math.floor(Math.random()*state.players.length)];p[9]=1;log(p[0]+" está suspenso para o próximo encontro.")}
+  log("Começou uma nova semana de preparação para a jornada "+state.week+".");
+ }else{
+  state.day++;
+  state.balance-=.05;
+  const dayNames=["","Segunda-feira","Terça-feira","Quarta-feira","Quinta-feira","Sexta-feira","Sábado","Domingo · Dia de jogo"];
+  if(state.day===7){log("Amanhã é dia de jogo! Prepara o onze inicial.");inboxAdd("Aproxima-se o dia de jogo","A equipa entra na fase final de preparação para a jornada "+state.week+".","Calendário")}
+  homeMsg(dayNames[state.day]+": dia "+state.day+"/7. Gere o plantel e prepara o encontro.");
+ }
+ renderAll();save();
+}
+$("weekBtn").onclick=advanceCareerDay;
 $("goMatch").onclick=()=>{setTab("match")};$("hubMatchBtn").onclick=()=>{setTab("match")};$("homeAdvanceBtn").onclick=()=>{$("weekBtn").click()};$("simulateMatch").onclick=simulate;
 $("subBtn").onclick=()=>{let injured=state.players.find(p=>p[8]>0||p[9]>0);let sub=state.players.find(p=>p[5]>70&&p[8]===0&&p[9]===0);if(sub&&state.match.minute>0&&!state.match.finished){state.match.events.push("Substituição: "+sub[0]+" entra para dar energia à equipa.");state.morale=Math.min(100,state.morale+1);updateMatch()}else $("commentary").innerHTML+="<p>As substituições podem ser feitas durante a partida; ainda não há uma alteração disponível.</p>"};
 $("matchTacticBtn").onclick=()=>{state.mentality=state.mentality==="Ofensiva"?"Equilibrada":"Ofensiva";$("matchTacticBtn").textContent=state.mentality==="Ofensiva"?"Mentalidade equilibrada":"Mentalidade ofensiva";state.match.events.push("A equipa altera a mentalidade para "+state.mentality.toLowerCase()+".");updateMatch()};
