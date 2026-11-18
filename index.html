@@ -377,6 +377,7 @@ function startCareer(){
 }
 
 const money=n=>"€"+n.toFixed(1)+"M";
+const marketValue=p=>Math.max(0,Number(p&&p[5])||Math.round((Number(p&&p[3])||60)*0.45*10)/10);
 const defaultPlayers=[
 ["Rui Silva","GR",27,84,86,92,83,70,0,0],["Mateus Costa","DC",24,82,87,89,82,65,0,0],["Lucas Pereira","DC",29,80,80,90,76,52,0,0],["Tiago Gomes","DD",23,81,86,94,85,58,0,0],["Diogo Rocha","DE",25,83,85,91,88,74,0,0],["João Santos","MC",22,86,92,95,90,85,0,0],["Pedro Lima","MC",26,84,85,88,84,76,0,0],["Fábio Alves","MO",21,85,93,90,91,83,0,0],["Nuno Reis","ED",24,87,90,93,88,80,0,0],["André Mendes","PL",25,88,90,91,93,86,0,0],["Ivo Duarte","EE",20,82,91,95,89,78,0,0],["Carlos Neves","GR",20,73,85,98,78,76,0,0],["Bruno Matos","DC",22,77,84,94,80,72,0,0],["Guilherme Pires","MC",19,74,89,96,84,82,0,0],["Samuel Costa","AV",21,76,87,95,85,79,0,0],["David Faria","DE",24,75,79,93,77,70,0,0]];
 // Plantéis reais de referência 2026/27 para os três grandes portugueses.
