@@ -482,7 +482,7 @@ window.signPlayer=()=>{
 };
 function renderLeague(){let l=state.league;let sorted=[...l].sort((a,b)=>b.pts-a.pts||b.gd-a.gd);$("leagueTable").innerHTML=sorted.map((t,i)=>`<tr><td>${i+1}</td><td>${t.name}</td><td>${t.p}</td><td>${t.w}</td><td>${t.d}</td><td>${t.l}</td><td>${t.gd}</td><td class="rating">${t.pts}</td></tr>`).join("");$("leagueHeading").textContent=$("leagueChoice").value;$("calendar").innerHTML=`Jornada ${state.week}: ${state.club} vs ${opponent()}<br>Próxima janela internacional: setembro 2026<br>Taça nacional: calendário por definir`;$("trophies").textContent=state.trophies.length?state.trophies.join(", "):"Ainda sem títulos conquistados."}
 function opponent(){return clubNames[(state.week+2)%clubNames.length]}
-function drawPitch(id){let el=$(id);el.querySelectorAll(".player").forEach(x=>x.remove());let xs=[8,23,23,23,23,43,50,57,77,77,90],ys=[50,25,42,58,75,32,50,68,25,75,50];for(let i=0;i<11;i++){let p=document.createElement("i");p.className="player";p.style.left=xs[i]+"%";p.style.top=ys[i]+"%";el.appendChild(p)}}
+function drawPitch(id){let el=$(id);if(!el)return;el.querySelectorAll(".player").forEach(x=>x.remove());let xs=[8,23,23,23,23,43,50,57,77,77,90],ys=[50,25,42,58,75,32,50,68,25,75,50];for(let i=0;i<11;i++){let p=document.createElement("i");p.className="player";p.style.left=xs[i]+"%";p.style.top=ys[i]+"%";el.appendChild(p)}}
 
 let threeMatch=null;
 function init3DMatch(){
