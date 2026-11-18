@@ -192,11 +192,56 @@ body.authenticated.career-started #careerSetup{display:none!important}
  .career-shortcuts{grid-template-columns:1fr 1fr}
 }
 @media(max-width:420px){.career-side{grid-template-columns:1fr}}
+
+/* Navegação reorganizada em estilo de simulador de gestão */
+.fm-navigation{position:sticky;top:57px;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:14px;overflow:visible;padding:9px max(3%,calc((100% - 1260px)/2));background:rgba(9,21,34,.97);border-bottom:1px solid #2a4057;box-shadow:0 8px 22px #0003}
+.fm-navigation .nav-primary{display:flex;align-items:center;gap:5px;min-width:0}
+.fm-navigation button{display:flex;align-items:center;gap:7px;white-space:nowrap;padding:10px 12px;border:1px solid transparent;border-radius:9px;background:transparent;color:#b9c9d9;font-size:12px;font-weight:800;transition:background .18s,border-color .18s,color .18s}
+.fm-navigation button span{font-size:15px;line-height:1}
+.fm-navigation button:hover{background:#172a3e;border-color:#304b65;color:#fff}
+.fm-navigation button.primary{background:linear-gradient(135deg,#45df91,#27bd78);border-color:#45df91;color:#062416;box-shadow:0 4px 14px #45df9125}
+.fm-navigation .nav-secondary{display:flex;align-items:center;gap:8px;padding-left:13px;border-left:1px solid #30445a;flex-shrink:0}
+.fm-navigation .nav-caption{font-size:9px;letter-spacing:.16em;font-weight:900;color:#71869c}
+.fm-navigation select{min-width:145px;margin:0;padding:10px 28px 10px 11px;border:1px solid #344d67;border-radius:9px;background:#14263a;color:#e8f0f8;font-size:12px;font-weight:750}
+@media(max-width:900px){
+ .fm-navigation{gap:8px;padding:7px 10px;overflow-x:auto}
+ .fm-navigation .nav-primary{gap:3px}
+ .fm-navigation button{padding:9px 10px;font-size:11px}
+ .fm-navigation .nav-secondary{padding-left:8px}
+ .fm-navigation .nav-caption{display:none}
+ .fm-navigation select{min-width:120px;max-width:135px;font-size:11px}
+}
+@media(max-width:600px){
+ .fm-navigation{top:0;justify-content:flex-start}
+ .fm-navigation .nav-primary{flex:0 0 auto}
+ .fm-navigation button{flex-direction:column;gap:3px;min-width:68px;padding:7px 8px;font-size:10px}
+ .fm-navigation button span{font-size:16px}
+ .fm-navigation .nav-secondary{position:sticky;right:0;background:#091522;padding-left:8px}
+ .fm-navigation select{min-width:112px;max-width:112px;padding:8px 5px;font-size:10px}
+}
+
 </style></head><body><div class="rotate-hint" role="status"><div class="rotate-icon">📱 ↻</div><strong>Roda o telemóvel</strong><p>O FM Ultimate foi otimizado para jogar com o ecrã na horizontal.</p></div>
 <header><div class="logo">FM <span>ULTIMATE</span></div><div class="season" id="seasonLabel">ÉPOCA 2026/27 · CARREIRA</div><div class="row"><span class="pill" id="managerLabel">TREINADOR</span><b id="dateLabel">JUL 2026</b></div></header>
-<nav aria-label="Navegação principal">
-<button data-tab="home" class="primary">⌂ Início</button><button data-tab="squad">♟ Equipa</button><button data-tab="tactics">▤ Tática</button><button data-tab="match">▶ Jogar</button><button data-tab="transfers">⇄ Mercado</button><button data-tab="league">🏆 Liga</button><button data-tab="inbox">✉ Caixa de entrada</button>
-<select id="moreNav" aria-label="Mais áreas"><option value="">Mais áreas…</option><option value="finances">Finanças</option><option value="academy">Academia</option><option value="staff">Clube e equipa técnica</option><option value="international">Seleções</option></select>
+<nav aria-label="Navegação principal" class="fm-navigation">
+<div class="nav-primary">
+<button data-tab="home" class="primary"><span>⌂</span> Visão geral</button>
+<button data-tab="squad"><span>♟</span> Plantel</button>
+<button data-tab="tactics"><span>▤</span> Táticas</button>
+<button data-tab="match"><span>▶</span> Centro de jogo</button>
+<button data-tab="transfers"><span>⇄</span> Mercado</button>
+<button data-tab="league"><span>🏆</span> Competições</button>
+</div>
+<div class="nav-secondary">
+<span class="nav-caption">CLUBE</span>
+<select id="moreNav" aria-label="Outras áreas do clube">
+<option value="">Mais áreas…</option>
+<option value="inbox">Caixa de entrada</option>
+<option value="finances">Finanças</option>
+<option value="academy">Academia</option>
+<option value="staff">Clube e equipa técnica</option>
+<option value="international">Seleções</option>
+</select>
+</div>
 </nav>
 <main>
 <section class="panel" id="accountHub" style="display:none;margin-bottom:14px">
@@ -427,8 +472,13 @@ window.acceptNationalOffer=function(country){state.nationalTeam=country;state.na
 function moneyUI(){["budgetTop","budgetFin"].forEach(id=>$(id).textContent=money(state.budget));["balanceTop","balanceFin"].forEach(id=>$(id).textContent=money(state.balance));$("moraleTop").textContent=state.morale;$("repTop").textContent="★★★★☆";$("wages").textContent="€"+state.players.reduce((n,p)=>n+p[3]*1.7*4.33/1000,0).toFixed(2)+"M/mês";$("income").textContent=money(14.4+state.week*.3);$("salaryCap").textContent=money(state.salaryBudget||3.2)}
 function save(){persistActiveCareer();try{localStorage.setItem("fmUltimateCareer"+(currentUser?"_"+currentUser.id:""),JSON.stringify(state));if(currentUser)localStorage.setItem("fmUltimateAccount_"+currentUser.id,JSON.stringify(accountBundle()))}catch(e){$("saveStatus").textContent="Armazenamento do telemóvel cheio."}if(currentUser){saveCloud()}else $("saveStatus").textContent="A aguardar ligação do perfil deste dispositivo."}
 function load(){let s=localStorage.getItem("fmUltimateCareer"+(currentUser?"_"+currentUser.id:""));if(!s){$("saveStatus").textContent="Não foi encontrada uma carreira guardada.";return}try{state=JSON.parse(s);renderAll();$("saveStatus").textContent="Carreira carregada."}catch(e){$("saveStatus").textContent="Não foi possível carregar a gravação."}}
-function setTab(t){document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.id===t));document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("primary",x.dataset.tab===t));if(t==="match"&&threeMatch&&threeMatch.resize)requestAnimationFrame(threeMatch.resize)}
-document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{setTab(b.dataset.tab);$("moreNav").value=""});
+function setTab(t){
+ document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.id===t));
+ document.querySelectorAll(".fm-navigation button").forEach(x=>x.classList.toggle("primary",x.dataset.tab===t));
+ const more=$("moreNav");if(more)more.value=[...more.options].some(o=>o.value===t)?t:"";
+ if(t==="match"&&threeMatch&&threeMatch.resize)requestAnimationFrame(threeMatch.resize);
+}
+document.querySelectorAll(".fm-navigation button").forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
 $("moreNav").onchange=()=>{if($("moreNav").value)setTab($("moreNav").value)};
 function attrClass(v){return v>=80?"attr-high":v>=65?"attr-mid":"attr-low"}window.setRole=(i,v)=>{state.players[i][10]=v;save();renderSquad()};function renderSquad(){let f=$("filterPosition").value;let ps=state.players.filter(p=>f==="all"||(f==="DEF"&&["DC","DD","DE"].includes(p[1]))||(f==="MED"&&["MC","MO"].includes(p[1]))||(f==="AV"&&["PL","ED","EE","AV"].includes(p[1]))||p[1]===f);$("squadTable").innerHTML=ps.map(p=>{let i=state.players.indexOf(p),status=p[8]>0?"Lesionado":p[9]>0?"Suspenso":"Disponível",role=p[10]||"Equilibrado";return "<tr><td>"+p[0]+"</td><td>"+p[1]+"</td><td>"+p[2]+"</td><td class=\""+attrClass(p[3])+"\">"+p[3]+"</td><td class=\""+attrClass(p[4])+"\">"+p[4]+"</td><td><div class=\"bar\" style=\"width:55px\"><i style=\"width:"+p[5]+"%\"></i></div>"+p[5]+"%</td><td class=\""+attrClass(p[6])+"\">"+p[6]+"</td><td><select onchange=\"setRole("+i+",this.value)\"><option>"+role+"</option><option>Construtor de jogo</option><option>Recuperador de bolas</option><option>Médio área-a-área</option><option>Extremo invertido</option><option>Avançado fixo</option><option>Avançado pressionante</option><option>Lateral ofensivo</option></select></td><td>"+status+"</td><td>€"+Math.round(p[3]*1.7)+"K</td></tr>"}).join("")}function renderMarket(){let q=$("marketSearch").value.toLowerCase();$("marketTable").innerHTML=state.market.map((p,i)=>({p,i})).filter(x=>x.p[0].toLowerCase().includes(q)).map(({p,i})=>`<tr><td>${p[0]}</td><td>${p[1]}</td><td>${p[2]}</td><td class="rating">${p[3]}</td><td>${p[4]}</td><td>${money(window.marketValue(p))}</td><td><button onclick="deal(${i})">Negociar</button></td></tr>`).join("")}
 // Negociação em duas etapas: proposta aceite e assinatura explícita do contrato.
