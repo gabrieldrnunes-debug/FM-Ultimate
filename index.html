@@ -86,6 +86,26 @@ table tbody tr:hover{background:#ffffff08}
  button,select,input{font-size:12px;padding:7px 9px}
  .feedlog{max-height:120px}
 }
+
+/* Entrada obrigatória: o jogo só aparece depois de autenticar */
+body:not(.authenticated){overflow:hidden}
+body:not(.authenticated) header,body:not(.authenticated) nav{display:none!important}
+body:not(.authenticated) main{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;overflow:auto;width:100%;max-width:none;margin:0;padding:22px;background:radial-gradient(ellipse at 50% 0%,#183750 0,#08111d 65%)}
+body:not(.authenticated) main>:not(#accountPanel){display:none!important}
+body:not(.authenticated) #accountPanel{display:block!important;position:relative;width:min(100%,440px);margin:auto!important;padding:26px;border:1px solid #36516c;border-radius:20px;background:linear-gradient(150deg,#14263a,#0c1725);box-shadow:0 24px 80px #0009}
+body:not(.authenticated) #accountPanel h2{font-size:25px;margin:0 0 7px}
+body:not(.authenticated) #accountPanel .row:first-child{display:block}
+body:not(.authenticated) #authBadge{display:inline-block;margin:12px 0 0}
+body:not(.authenticated) #authControls{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+body:not(.authenticated) #authEmail,body:not(.authenticated) #authPassword{grid-column:1/-1;width:100%;min-width:0;padding:13px;font-size:15px}
+body:not(.authenticated) #authControls button{padding:12px 10px;font-size:14px}
+body:not(.authenticated) #authHelp{margin-top:13px;line-height:1.5}
+body.authenticated #accountPanel{display:none!important}
+@media(max-width:600px){
+ body:not(.authenticated) main{padding:14px}
+ body:not(.authenticated) #accountPanel{padding:20px}
+ body:not(.authenticated) #accountPanel h2{font-size:22px}
+}
 </style></head><body><div class="rotate-hint" role="status"><div class="rotate-icon">📱 ↻</div><strong>Roda o telemóvel</strong><p>O FM Ultimate foi otimizado para jogar com o ecrã na horizontal.</p></div>
 <header><div class="logo">FM <span>ULTIMATE</span></div><div class="season" id="seasonLabel">ÉPOCA 2026/27 · CARREIRA</div><div class="row"><span class="pill" id="managerLabel">TREINADOR</span><b id="dateLabel">JUL 2026</b></div></header>
 <nav aria-label="Navegação principal">
@@ -123,11 +143,11 @@ const SUPABASE_URL="https://xqhjrvtteqtvbkmmqtqv.supabase.co";
 const SUPABASE_KEY="sb_publishable_UIgHG7OiwoNfz4l-QyhSNg_dr0AKPE3";
 const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let currentUser=null,authBusy=false;
-function authUI(){const yes=!!currentUser;$("authBadge").textContent=yes?"CONTA LIGADA":"VISITANTE";$("authStatus").textContent=yes?"Sessão iniciada: "+currentUser.email:"Entra ou cria uma conta para guardar a tua carreira na nuvem.";$("authEmail").style.display=yes?"none":"";$("authPassword").style.display=yes?"none":"";$("loginBtn").style.display=yes?"none":"";$("signupBtn").style.display=yes?"none":"";$("logoutBtn").style.display=yes?"":"none";$("authHelp").textContent=yes?"A tua carreira está associada à tua conta. Outras pessoas precisam da própria conta.":"Cria uma conta individual. Nunca partilhes a tua palavra-passe."}
+function authUI(){const yes=!!currentUser;document.body.classList.toggle("authenticated",yes);$("accountPanel").style.display=yes?"none":"block";$("authBadge").textContent=yes?"CONTA LIGADA":"ACESSO OBRIGATÓRIO";$("authStatus").textContent=yes?"Sessão iniciada: "+currentUser.email:"Entra ou cria uma conta para começar a jogar."; $("authEmail").style.display=yes?"none":"";$("authPassword").style.display=yes?"none":"";$("loginBtn").style.display=yes?"none":"";$("signupBtn").style.display=yes?"none":"";$("logoutBtn").style.display=yes?"":"none";$("authHelp").textContent=yes?"A tua carreira está associada à tua conta.":"Cria uma conta individual. Nunca partilhes a tua palavra-passe."}
 async function saveCloud(){if(!currentUser)return;const {error}=await supa.from("careers").upsert({user_id:currentUser.id,save_data:state,updated_at:new Date().toISOString()},{onConflict:"user_id"});$("saveStatus").textContent=error?"Erro ao guardar na nuvem: "+error.message:"Carreira guardada na tua conta."}
 async function loadCloud(){if(!currentUser)return;const {data,error}=await supa.from("careers").select("save_data").eq("user_id",currentUser.id).maybeSingle();if(error){$("saveStatus").textContent="Erro ao carregar a carreira: "+error.message;return}if(data&&data.save_data){state=data.save_data;localStorage.setItem("fmUltimateCareer_"+currentUser.id,JSON.stringify(state));renderAll();$("saveStatus").textContent="Carreira privada carregada da nuvem."}else{localStorage.setItem("fmUltimateCareer_"+currentUser.id,JSON.stringify(state));await saveCloud();$("saveStatus").textContent="Nova carreira guardada na tua conta."}}
-async function authAction(kind){if(authBusy)return;let email=$("authEmail").value.trim(),password=$("authPassword").value;if(!email||password.length<8){$("authHelp").textContent="Indica um email e uma palavra-passe com pelo menos 8 caracteres.";return}authBusy=true;let res=kind==="signup"?await supa.auth.signUp({email,password}):await supa.auth.signInWithPassword({email,password});authBusy=false;if(res.error){$("authHelp").textContent=res.error.message;return}if(kind==="signup"&&!res.data.session){$("authHelp").textContent="Conta criada! Confirma o email recebido e depois inicia sessão."}else if(res.data.user){currentUser=res.data.user;authUI();await loadCloud()}}
-async function initAuth(){supa.auth.onAuthStateChange(async(_event,session)=>{let next=session?.user||null;let changed=next?.id!==currentUser?.id;currentUser=next;authUI();if(changed&&currentUser){await loadCloud()}else if(!currentUser){$("saveStatus").textContent="Sessão terminada. A carreira local continua neste dispositivo."}});const {data}=await supa.auth.getSession();currentUser=data.session?.user||null;authUI();if(currentUser)await loadCloud()}
+async function authAction(kind){if(authBusy)return;let email=$("authEmail").value.trim(),password=$("authPassword").value;if(!email||password.length<8){$("authHelp").textContent="Indica um email e uma palavra-passe com pelo menos 8 caracteres.";return}authBusy=true;let res=kind==="signup"?await supa.auth.signUp({email,password}):await supa.auth.signInWithPassword({email,password});authBusy=false;if(res.error){$("authHelp").textContent=res.error.message;return}if(kind==="signup"&&!res.data.session){$("authHelp").textContent="Conta criada! Confirma o email recebido e depois inicia sessão."}else if(res.data.user){currentUser=res.data.user;await loadCloud();authUI()}}
+async function initAuth(){supa.auth.onAuthStateChange(async(_event,session)=>{let next=session?.user||null;let changed=next?.id!==currentUser?.id;currentUser=next;if(changed&&currentUser){await loadCloud()}authUI();if(!currentUser){$("saveStatus").textContent="Sessão terminada. Inicia sessão para continuar a jogar."}});const {data}=await supa.auth.getSession();currentUser=data.session?.user||null;if(currentUser)await loadCloud();authUI()}
 
 const money=n=>"€"+n.toFixed(1)+"M";
 const defaultPlayers=[
